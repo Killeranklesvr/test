@@ -1,118 +1,113 @@
--- LocalScript for Hacker Terminal Login GUI
-
+-- Hacker Login Terminal GUI v2
 local player = game:GetService("Players").LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "HackerTerminal"
 gui.ResetOnSpawn = false
 
 -- Terminal Frame
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(1, 0, 1, 0)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
+local terminalFrame = Instance.new("Frame", gui)
+terminalFrame.Size = UDim2.new(1, 0, 1, 0)
+terminalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 
--- Terminal Text
-local terminal = Instance.new("TextLabel", frame)
-terminal.Size = UDim2.new(1, -20, 1, -20)
-terminal.Position = UDim2.new(0, 10, 0, 10)
-terminal.BackgroundTransparency = 1
-terminal.TextColor3 = Color3.fromRGB(0, 255, 0)
-terminal.Font = Enum.Font.Code
-terminal.TextSize = 18
-terminal.TextXAlignment = Enum.TextXAlignment.Left
-terminal.TextYAlignment = Enum.TextYAlignment.Top
-terminal.TextWrapped = false
-terminal.Text = ""
-terminal.TextScaled = false
-terminal.RichText = true
-terminal.ClipsDescendants = true
+-- Terminal Text Display
+local terminalText = Instance.new("TextLabel", terminalFrame)
+terminalText.Size = UDim2.new(1, -20, 1, -20)
+terminalText.Position = UDim2.new(0, 10, 0, 10)
+terminalText.BackgroundTransparency = 1
+terminalText.TextColor3 = Color3.fromRGB(0, 255, 0)
+terminalText.Font = Enum.Font.Code
+terminalText.TextSize = 18
+terminalText.TextXAlignment = Enum.TextXAlignment.Left
+terminalText.TextYAlignment = Enum.TextYAlignment.Top
+terminalText.TextWrapped = false
+terminalText.TextScaled = false
+terminalText.RichText = true
+terminalText.ClipsDescendants = true
+terminalText.Text = ""
 
--- Hacker-style log lines
+-- Lines to animate
 local logLines = {
 	"[ACCESS GRANTED]",
+	"Initializing secure shell...",
 	"Injecting payload...",
-	"Bypassing firewall...",
-	"Hooking remotes...",
-	"Initializing root access...",
-	"Connection established.",
-	"> Awaiting input..."
+	"Bypassing protection layers...",
+	"[CONNECTED]",
+	"",
+	"ENTER PASSWORD"
 }
 
--- Function to animate typing
-local function typeText(text, newline)
+-- Typing animation
+local function typeLine(text, newline)
 	for i = 1, #text do
-		terminal.Text = terminal.Text .. string.sub(text, i, i)
+		terminalText.Text = terminalText.Text .. text:sub(i, i)
 		wait(0.02)
 	end
-	if newline then
-		terminal.Text = terminal.Text .. "\n"
-	end
+	if newline then terminalText.Text = terminalText.Text .. "\n" end
 end
 
--- Start typing logs
 task.spawn(function()
 	for _, line in ipairs(logLines) do
-		typeText(line, true)
-		wait(0.2)
+		typeLine(line, true)
+		wait(0.3)
 	end
-	typeText("> ", false)
+	terminalText.Text = terminalText.Text .. "> "
 end)
 
--- Invisible TextBox for input capture
-local inputBox = Instance.new("TextBox", frame)
+-- Input TextBox
+local inputBox = Instance.new("TextBox", terminalFrame)
 inputBox.Size = UDim2.new(1, 0, 1, 0)
-inputBox.Position = UDim2.new(0, 0, 0, 0)
-inputBox.TextTransparency = 1
 inputBox.BackgroundTransparency = 1
+inputBox.TextTransparency = 1
 inputBox.ClearTextOnFocus = false
 inputBox.Text = ""
-inputBox.TextColor3 = Color3.new(0, 1, 0)
 inputBox.Font = Enum.Font.Code
 inputBox.TextSize = 18
+inputBox.TextColor3 = Color3.fromRGB(0, 255, 0)
 inputBox.MultiLine = true
-inputBox.CursorPosition = -1
 inputBox.ZIndex = 2
+inputBox.CursorPosition = -1
+
 inputBox.FocusLost:Connect(function(enterPressed)
-	if enterPressed then
-		local lastLine = inputBox.Text:match("[^\n]+$") or ""
-		if lastLine == "Killer" then
-			terminal.Text = terminal.Text .. "Killer\n[LOGIN SUCCESSFUL]\n"
-			inputBox.Visible = false
-			wait(1)
-			showButtonGUI()
-		else
-			terminal.Text = terminal.Text .. lastLine .. "\n[INVALID COMMAND]\n> "
-			inputBox.Text = ""
-		end
+	if not enterPressed then return end
+	local last = inputBox.Text:match("[^\n]+$") or ""
+	terminalText.Text = terminalText.Text .. last .. "\n"
+	if last == "Killer" then
+		terminalText.Text = terminalText.Text .. "[LOGIN SUCCESSFUL]\n"
+		wait(0.7)
+		gui:Destroy()
+		showHackGUI()
+	else
+		terminalText.Text = terminalText.Text .. "[INVALID PASSWORD]\n> "
+		inputBox.Text = ""
 	end
 end)
 
 inputBox:CaptureFocus()
 
--- Function to show button GUI after login
-function showButtonGUI()
-	local gui2 = Instance.new("ScreenGui", player.PlayerGui)
-	gui2.Name = "CommandPanel"
+-- Function to show the hack GUI with buttons
+function showHackGUI()
+	local gui2 = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+	gui2.Name = "HackPanel"
 
-	local frame2 = Instance.new("Frame", gui2)
-	frame2.Size = UDim2.new(0, 300, 0, 250)
-	frame2.Position = UDim2.new(0.5, -150, 0.5, -125)
-	frame2.BackgroundColor3 = Color3.new(0, 0, 0)
-	frame2.BorderSizePixel = 2
-	frame2.Active = true
-	frame2.Draggable = true
+	local panel = Instance.new("Frame", gui2)
+	panel.Size = UDim2.new(0, 300, 0, 250)
+	panel.Position = UDim2.new(0.5, -150, 0.5, -125)
+	panel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	panel.BorderSizePixel = 2
+	panel.Active = true
+	panel.Draggable = true
 
-	local function createButton(text, position, callback)
-		local button = Instance.new("TextButton", frame2)
-		button.Size = UDim2.new(1, -20, 0, 40)
-		button.Position = UDim2.new(0, 10, 0, position)
-		button.Text = text
-		button.TextColor3 = Color3.fromRGB(0, 255, 0)
-		button.Font = Enum.Font.Code
-		button.TextSize = 18
-		button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-		button.BorderSizePixel = 0
-
-		button.MouseButton1Click:Connect(callback)
+	local function createButton(text, yOffset, callback)
+		local btn = Instance.new("TextButton", panel)
+		btn.Size = UDim2.new(1, -20, 0, 40)
+		btn.Position = UDim2.new(0, 10, 0, yOffset)
+		btn.Text = text
+		btn.TextColor3 = Color3.fromRGB(0, 255, 0)
+		btn.Font = Enum.Font.Code
+		btn.TextSize = 18
+		btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		btn.BorderSizePixel = 0
+		btn.MouseButton1Click:Connect(callback)
 	end
 
 	createButton("💥 Explode", 10, function()
@@ -133,7 +128,7 @@ function showButtonGUI()
 		if hum then hum.WalkSpeed = 16 end
 	end)
 
-	createButton("🧠 Print ESP", 160, function()
-		print("[ESP] Enemy spotted at vector 102, 20, -39")
+	createButton("🧠 ESP Message", 160, function()
+		print("[ESP] Enemy detected at vector 102, 45, -89")
 	end)
 end
