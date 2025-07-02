@@ -99,7 +99,7 @@ local function setupTerminalGUI()
 	terminalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 
 	local terminalText = Instance.new("TextLabel", terminalFrame)
-	terminalText.Size = UDim2.new(1, -20, 1, -20)
+	terminalText.Size = UDim2.new(1, -20, 1, -70)
 	terminalText.Position = UDim2.new(0, 10, 0, 10)
 	terminalText.BackgroundTransparency = 1
 	terminalText.TextColor3 = Color3.fromRGB(0, 255, 0)
@@ -120,7 +120,8 @@ local function setupTerminalGUI()
 		"Bypassing protection layers...",
 		"[CONNECTED]",
 		"",
-		"ENTER PASSWORD"
+		"ENTER PASSWORD",
+		">"
 	}
 
 	local function typeLine(text, newline)
@@ -136,27 +137,46 @@ local function setupTerminalGUI()
 			typeLine(line, true)
 			wait(0.3)
 		end
-		terminalText.Text = terminalText.Text .. "> "
 	end)
 
+	-- Input prompt label
+	local inputLabel = Instance.new("TextLabel", terminalFrame)
+	inputLabel.Size = UDim2.new(0, 30, 0, 30)
+	inputLabel.Position = UDim2.new(0, 10, 1, -40)
+	inputLabel.BackgroundTransparency = 1
+	inputLabel.Text = "> "
+	inputLabel.Font = Enum.Font.Code
+	inputLabel.TextSize = 18
+	inputLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	inputLabel.TextXAlignment = Enum.TextXAlignment.Left
+	inputLabel.TextYAlignment = Enum.TextYAlignment.Center
+	inputLabel.ZIndex = 2
+
+	-- Input textbox
 	local inputBox = Instance.new("TextBox", terminalFrame)
-	inputBox.Size = UDim2.new(1, 0, 1, 0)
-	inputBox.BackgroundTransparency = 1
-	inputBox.TextTransparency = 1
-	inputBox.ClearTextOnFocus = false
-	inputBox.Text = ""
+	inputBox.Size = UDim2.new(1, -50, 0, 30)
+	inputBox.Position = UDim2.new(0, 50, 1, -40)
+	inputBox.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	inputBox.BorderSizePixel = 0
 	inputBox.Font = Enum.Font.Code
-	inputBox.TextSize = 18
 	inputBox.TextColor3 = Color3.fromRGB(0, 255, 0)
-	inputBox.MultiLine = true
+	inputBox.TextSize = 18
+	inputBox.PlaceholderText = "Enter password..."
+	inputBox.ClearTextOnFocus = true
+	inputBox.MultiLine = false
 	inputBox.ZIndex = 2
-	inputBox.CursorPosition = -1
+	inputBox.Text = ""
+
+	-- Auto-focus to enable typing on PC and mobile
+	task.defer(function()
+		inputBox:CaptureFocus()
+	end)
 
 	inputBox.FocusLost:Connect(function(enterPressed)
 		if not enterPressed then return end
-		local last = inputBox.Text:match("[^\n]+$") or ""
-		terminalText.Text = terminalText.Text .. last .. "\n"
-		if last == "Killer" then
+		local input = inputBox.Text
+		terminalText.Text = terminalText.Text .. "> " .. input .. "\n"
+		if input == "Killer" then
 			terminalText.Text = terminalText.Text .. "[LOGIN SUCCESSFUL]\n"
 			loggedIn = true
 			wait(0.7)
@@ -165,10 +185,11 @@ local function setupTerminalGUI()
 		else
 			terminalText.Text = terminalText.Text .. "[INVALID PASSWORD]\n> "
 			inputBox.Text = ""
+			task.defer(function()
+				inputBox:CaptureFocus()
+			end)
 		end
 	end)
-
-	inputBox:CaptureFocus()
 end
 
 -- Show GUI again after death if logged in
