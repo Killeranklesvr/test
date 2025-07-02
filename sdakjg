@@ -1,92 +1,15 @@
--- Hacker Login Terminal GUI v2
-local player = game:GetService("Players").LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "HackerTerminal"
-gui.ResetOnSpawn = false
+-- Hacker Terminal Login with Persistent Access After Death
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
--- Terminal Frame
-local terminalFrame = Instance.new("Frame", gui)
-terminalFrame.Size = UDim2.new(1, 0, 1, 0)
-terminalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+-- Flag to track successful login
+local loggedIn = false
 
--- Terminal Text Display
-local terminalText = Instance.new("TextLabel", terminalFrame)
-terminalText.Size = UDim2.new(1, -20, 1, -20)
-terminalText.Position = UDim2.new(0, 10, 0, 10)
-terminalText.BackgroundTransparency = 1
-terminalText.TextColor3 = Color3.fromRGB(0, 255, 0)
-terminalText.Font = Enum.Font.Code
-terminalText.TextSize = 18
-terminalText.TextXAlignment = Enum.TextXAlignment.Left
-terminalText.TextYAlignment = Enum.TextYAlignment.Top
-terminalText.TextWrapped = false
-terminalText.TextScaled = false
-terminalText.RichText = true
-terminalText.ClipsDescendants = true
-terminalText.Text = ""
+-- Show hack GUI after login or respawn
+local function showHackGUI()
+	if player.PlayerGui:FindFirstChild("HackPanel") then return end
 
--- Lines to animate
-local logLines = {
-	"[ACCESS GRANTED]",
-	"Initializing secure shell...",
-	"Injecting payload...",
-	"Bypassing protection layers...",
-	"[CONNECTED]",
-	"",
-	"ENTER PASSWORD"
-}
-
--- Typing animation
-local function typeLine(text, newline)
-	for i = 1, #text do
-		terminalText.Text = terminalText.Text .. text:sub(i, i)
-		wait(0.02)
-	end
-	if newline then terminalText.Text = terminalText.Text .. "\n" end
-end
-
-task.spawn(function()
-	for _, line in ipairs(logLines) do
-		typeLine(line, true)
-		wait(0.3)
-	end
-	terminalText.Text = terminalText.Text .. "> "
-end)
-
--- Input TextBox
-local inputBox = Instance.new("TextBox", terminalFrame)
-inputBox.Size = UDim2.new(1, 0, 1, 0)
-inputBox.BackgroundTransparency = 1
-inputBox.TextTransparency = 1
-inputBox.ClearTextOnFocus = false
-inputBox.Text = ""
-inputBox.Font = Enum.Font.Code
-inputBox.TextSize = 18
-inputBox.TextColor3 = Color3.fromRGB(0, 255, 0)
-inputBox.MultiLine = true
-inputBox.ZIndex = 2
-inputBox.CursorPosition = -1
-
-inputBox.FocusLost:Connect(function(enterPressed)
-	if not enterPressed then return end
-	local last = inputBox.Text:match("[^\n]+$") or ""
-	terminalText.Text = terminalText.Text .. last .. "\n"
-	if last == "Killer" then
-		terminalText.Text = terminalText.Text .. "[LOGIN SUCCESSFUL]\n"
-		wait(0.7)
-		gui:Destroy()
-		showHackGUI()
-	else
-		terminalText.Text = terminalText.Text .. "[INVALID PASSWORD]\n> "
-		inputBox.Text = ""
-	end
-end)
-
-inputBox:CaptureFocus()
-
--- Function to show the hack GUI with buttons
-function showHackGUI()
-	local gui2 = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+	local gui2 = Instance.new("ScreenGui", player.PlayerGui)
 	gui2.Name = "HackPanel"
 
 	local panel = Instance.new("Frame", gui2)
@@ -132,3 +55,99 @@ function showHackGUI()
 		print("[ESP] Enemy detected at vector 102, 45, -89")
 	end)
 end
+
+-- Setup the terminal GUI (only once)
+local function setupTerminalGUI()
+	if loggedIn then return end
+
+	local gui = Instance.new("ScreenGui", player.PlayerGui)
+	gui.Name = "HackerTerminal"
+	gui.ResetOnSpawn = false
+
+	local terminalFrame = Instance.new("Frame", gui)
+	terminalFrame.Size = UDim2.new(1, 0, 1, 0)
+	terminalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+
+	local terminalText = Instance.new("TextLabel", terminalFrame)
+	terminalText.Size = UDim2.new(1, -20, 1, -20)
+	terminalText.Position = UDim2.new(0, 10, 0, 10)
+	terminalText.BackgroundTransparency = 1
+	terminalText.TextColor3 = Color3.fromRGB(0, 255, 0)
+	terminalText.Font = Enum.Font.Code
+	terminalText.TextSize = 18
+	terminalText.TextXAlignment = Enum.TextXAlignment.Left
+	terminalText.TextYAlignment = Enum.TextYAlignment.Top
+	terminalText.TextWrapped = false
+	terminalText.TextScaled = false
+	terminalText.RichText = true
+	terminalText.ClipsDescendants = true
+	terminalText.Text = ""
+
+	local logLines = {
+		"[ACCESS GRANTED]",
+		"Initializing secure shell...",
+		"Injecting payload...",
+		"Bypassing protection layers...",
+		"[CONNECTED]",
+		"",
+		"ENTER PASSWORD"
+	}
+
+	local function typeLine(text, newline)
+		for i = 1, #text do
+			terminalText.Text = terminalText.Text .. text:sub(i, i)
+			wait(0.02)
+		end
+		if newline then terminalText.Text = terminalText.Text .. "\n" end
+	end
+
+	task.spawn(function()
+		for _, line in ipairs(logLines) do
+			typeLine(line, true)
+			wait(0.3)
+		end
+		terminalText.Text = terminalText.Text .. "> "
+	end)
+
+	local inputBox = Instance.new("TextBox", terminalFrame)
+	inputBox.Size = UDim2.new(1, 0, 1, 0)
+	inputBox.BackgroundTransparency = 1
+	inputBox.TextTransparency = 1
+	inputBox.ClearTextOnFocus = false
+	inputBox.Text = ""
+	inputBox.Font = Enum.Font.Code
+	inputBox.TextSize = 18
+	inputBox.TextColor3 = Color3.fromRGB(0, 255, 0)
+	inputBox.MultiLine = true
+	inputBox.ZIndex = 2
+	inputBox.CursorPosition = -1
+
+	inputBox.FocusLost:Connect(function(enterPressed)
+		if not enterPressed then return end
+		local last = inputBox.Text:match("[^\n]+$") or ""
+		terminalText.Text = terminalText.Text .. last .. "\n"
+		if last == "Killer" then
+			terminalText.Text = terminalText.Text .. "[LOGIN SUCCESSFUL]\n"
+			loggedIn = true
+			wait(0.7)
+			gui:Destroy()
+			showHackGUI()
+		else
+			terminalText.Text = terminalText.Text .. "[INVALID PASSWORD]\n> "
+			inputBox.Text = ""
+		end
+	end)
+
+	inputBox:CaptureFocus()
+end
+
+-- Detect respawn and re-show GUI if logged in
+player.CharacterAdded:Connect(function()
+	wait(1)
+	if loggedIn then
+		showHackGUI()
+	end
+end)
+
+-- First-time terminal GUI setup
+setupTerminalGUI()
