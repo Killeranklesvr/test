@@ -1,18 +1,46 @@
--- Hacker Terminal Login with Persistent Access After Death
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Flag to track successful login
 local loggedIn = false
+local hackGui -- reference to the hack panel
+local toggleButton -- reference to toggle button
 
--- Show hack GUI after login or respawn
+-- Show toggle button
+local function showToggleButton()
+	if toggleButton then return end
+
+	toggleButton = Instance.new("TextButton", player:WaitForChild("PlayerGui"))
+	toggleButton.Size = UDim2.new(0, 140, 0, 40)
+	toggleButton.Position = UDim2.new(0, 20, 1, -60)
+	toggleButton.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	toggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+	toggleButton.Font = Enum.Font.Code
+	toggleButton.TextSize = 16
+	toggleButton.Text = "Open Hack Panel"
+	toggleButton.Name = "ToggleHackButton"
+
+	toggleButton.MouseButton1Click:Connect(function()
+		if hackGui then
+			hackGui.Enabled = not hackGui.Enabled
+			toggleButton.Text = hackGui.Enabled and "Close Hack Panel" or "Open Hack Panel"
+		end
+	end)
+end
+
+-- Show hack GUI panel
 local function showHackGUI()
-	if player.PlayerGui:FindFirstChild("HackPanel") then return end
+	if player.PlayerGui:FindFirstChild("HackPanel") then
+		hackGui = player.PlayerGui.HackPanel
+		hackGui.Enabled = true
+		showToggleButton()
+		return
+	end
 
-	local gui2 = Instance.new("ScreenGui", player.PlayerGui)
-	gui2.Name = "HackPanel"
+	hackGui = Instance.new("ScreenGui", player.PlayerGui)
+	hackGui.Name = "HackPanel"
+	hackGui.ResetOnSpawn = false
 
-	local panel = Instance.new("Frame", gui2)
+	local panel = Instance.new("Frame", hackGui)
 	panel.Size = UDim2.new(0, 300, 0, 250)
 	panel.Position = UDim2.new(0.5, -150, 0.5, -125)
 	panel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
@@ -54,9 +82,11 @@ local function showHackGUI()
 	createButton("🧠 ESP Message", 160, function()
 		print("[ESP] Enemy detected at vector 102, 45, -89")
 	end)
+
+	showToggleButton()
 end
 
--- Setup the terminal GUI (only once)
+-- Terminal login screen
 local function setupTerminalGUI()
 	if loggedIn then return end
 
@@ -141,13 +171,13 @@ local function setupTerminalGUI()
 	inputBox:CaptureFocus()
 end
 
--- Detect respawn and re-show GUI if logged in
-player.CharacterAdded:Connect(function()
+-- Show GUI again after death if logged in
+Players.LocalPlayer.CharacterAdded:Connect(function()
 	wait(1)
 	if loggedIn then
 		showHackGUI()
 	end
 end)
 
--- First-time terminal GUI setup
+-- Initial login terminal
 setupTerminalGUI()
