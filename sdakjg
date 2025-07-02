@@ -1,58 +1,102 @@
--- Hacker GUI (LocalScript)
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "HackerUI"
+-- LocalScript in StarterPlayerScripts
+local player = game:GetService("Players").LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "HackerTerminal"
+gui.ResetOnSpawn = false
 
--- Frame
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(1, 0, 1, 0)
+-- Main Frame
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 400, 0, 300)
+frame.Position = UDim2.new(0.5, -200, 0.5, -150)
 frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
 
--- Terminal Text Label
-local terminal = Instance.new("TextLabel", frame)
-terminal.Size = UDim2.new(1, 0, 1, 0)
-terminal.BackgroundTransparency = 1
-terminal.TextColor3 = Color3.fromRGB(0, 255, 0)
-terminal.TextStrokeTransparency = 0.8
-terminal.Font = Enum.Font.Code
-terminal.TextSize = 20
-terminal.TextXAlignment = Enum.TextXAlignment.Left
-terminal.TextYAlignment = Enum.TextYAlignment.Top
-terminal.Text = ""
-terminal.RichText = true
+-- Login TextBox
+local loginBox = Instance.new("TextBox", frame)
+loginBox.Size = UDim2.new(1, -20, 0, 40)
+loginBox.Position = UDim2.new(0, 10, 0, 10)
+loginBox.PlaceholderText = "Enter Password..."
+loginBox.Text = ""
+loginBox.TextColor3 = Color3.fromRGB(0, 255, 0)
+loginBox.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+loginBox.BorderSizePixel = 0
+loginBox.ClearTextOnFocus = false
+loginBox.Font = Enum.Font.Code
+loginBox.TextSize = 18
 
--- "Hacker" text lines
-local lines = {
-    "[ACCESS GRANTED]",
-    "Initializing Killer Hub...",
-    "Injecting into client...",
-    "Bypassing security protocols...",
-    ">> Log: Hooked RemoteEvent (id:0xF1A7)",
-    ">> Spoofing anti-cheat signature...",
-    "Loading scripts...",
-    "Connected to terminal... awaiting commands.",
-    "> _"
-}
+-- Login Button
+local loginButton = Instance.new("TextButton", frame)
+loginButton.Size = UDim2.new(1, -20, 0, 30)
+loginButton.Position = UDim2.new(0, 10, 0, 60)
+loginButton.Text = "LOGIN"
+loginButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+loginButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+loginButton.BorderSizePixel = 0
+loginButton.Font = Enum.Font.Code
+loginButton.TextSize = 16
 
--- Typewriter Effect
-task.spawn(function()
-    for _, line in ipairs(lines) do
-        for i = 1, #line do
-            terminal.Text = terminal.Text .. string.sub(line, i, i)
-            wait(0.02)
-        end
-        terminal.Text = terminal.Text .. "\n"
-        wait(0.3)
-    end
-end)
+-- Button Panel (Hidden until login)
+local buttonPanel = Instance.new("Frame", frame)
+buttonPanel.Size = UDim2.new(1, -20, 0, 180)
+buttonPanel.Position = UDim2.new(0, 10, 0, 100)
+buttonPanel.BackgroundTransparency = 1
+buttonPanel.Visible = false
 
--- Flashing Cursor
-task.spawn(function()
-    while true do
-        terminal.Text = terminal.Text:sub(1, -2) .. "_"
-        wait(0.5)
-        terminal.Text = terminal.Text:sub(1, -2) .. " "
-        wait(0.5)
-    end
+-- Sample Button Function
+local function createHackButton(name, command)
+	local button = Instance.new("TextButton", buttonPanel)
+	button.Size = UDim2.new(1, 0, 0, 30)
+	button.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
+	button.Text = name
+	button.TextColor3 = Color3.fromRGB(0, 255, 0)
+	button.Font = Enum.Font.Code
+	button.TextSize = 16
+	button.BorderSizePixel = 0
+
+	button.MouseButton1Click:Connect(function()
+		pcall(command)
+	end)
+
+	return button
+end
+
+-- Add example buttons
+local function setupButtons()
+	local btn1 = createHackButton("💥 Explode Character", function()
+		local char = player.Character
+		if char then
+			Instance.new("Explosion", workspace).Position = char.HumanoidRootPart.Position
+		end
+	end)
+
+	local btn2 = createHackButton("⚡ Speed Boost", function()
+		local human = player.Character and player.Character:FindFirstChild("Humanoid")
+		if human then
+			human.WalkSpeed = 100
+		end
+	end)
+
+	local btn3 = createHackButton("🎯 ESP Alert", function()
+		warn("[ESP] Enemy detected at 342, 24, -89")
+	end)
+
+	-- Layout
+	btn1.Position = UDim2.new(0, 0, 0, 0)
+	btn2.Position = UDim2.new(0, 0, 0, 35)
+	btn3.Position = UDim2.new(0, 0, 0, 70)
+end
+
+-- Handle login
+loginButton.MouseButton1Click:Connect(function()
+	if loginBox.Text == "Killer" then
+		loginBox.Visible = false
+		loginButton.Visible = false
+		buttonPanel.Visible = true
+		setupButtons()
+	else
+		loginBox.Text = ""
+		loginBox.PlaceholderText = "Incorrect. Try again."
+	end
 end)
