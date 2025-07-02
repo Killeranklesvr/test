@@ -1,102 +1,139 @@
--- LocalScript in StarterPlayerScripts
+-- LocalScript for Hacker Terminal Login GUI
+
 local player = game:GetService("Players").LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "HackerTerminal"
 gui.ResetOnSpawn = false
 
--- Main Frame
+-- Terminal Frame
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 400, 0, 300)
-frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+frame.Size = UDim2.new(1, 0, 1, 0)
 frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BorderSizePixel = 2
-frame.Active = true
-frame.Draggable = true
 
--- Login TextBox
-local loginBox = Instance.new("TextBox", frame)
-loginBox.Size = UDim2.new(1, -20, 0, 40)
-loginBox.Position = UDim2.new(0, 10, 0, 10)
-loginBox.PlaceholderText = "Enter Password..."
-loginBox.Text = ""
-loginBox.TextColor3 = Color3.fromRGB(0, 255, 0)
-loginBox.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-loginBox.BorderSizePixel = 0
-loginBox.ClearTextOnFocus = false
-loginBox.Font = Enum.Font.Code
-loginBox.TextSize = 18
+-- Terminal Text
+local terminal = Instance.new("TextLabel", frame)
+terminal.Size = UDim2.new(1, -20, 1, -20)
+terminal.Position = UDim2.new(0, 10, 0, 10)
+terminal.BackgroundTransparency = 1
+terminal.TextColor3 = Color3.fromRGB(0, 255, 0)
+terminal.Font = Enum.Font.Code
+terminal.TextSize = 18
+terminal.TextXAlignment = Enum.TextXAlignment.Left
+terminal.TextYAlignment = Enum.TextYAlignment.Top
+terminal.TextWrapped = false
+terminal.Text = ""
+terminal.TextScaled = false
+terminal.RichText = true
+terminal.ClipsDescendants = true
 
--- Login Button
-local loginButton = Instance.new("TextButton", frame)
-loginButton.Size = UDim2.new(1, -20, 0, 30)
-loginButton.Position = UDim2.new(0, 10, 0, 60)
-loginButton.Text = "LOGIN"
-loginButton.TextColor3 = Color3.fromRGB(0, 255, 0)
-loginButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-loginButton.BorderSizePixel = 0
-loginButton.Font = Enum.Font.Code
-loginButton.TextSize = 16
+-- Hacker-style log lines
+local logLines = {
+	"[ACCESS GRANTED]",
+	"Injecting payload...",
+	"Bypassing firewall...",
+	"Hooking remotes...",
+	"Initializing root access...",
+	"Connection established.",
+	"> Awaiting input..."
+}
 
--- Button Panel (Hidden until login)
-local buttonPanel = Instance.new("Frame", frame)
-buttonPanel.Size = UDim2.new(1, -20, 0, 180)
-buttonPanel.Position = UDim2.new(0, 10, 0, 100)
-buttonPanel.BackgroundTransparency = 1
-buttonPanel.Visible = false
-
--- Sample Button Function
-local function createHackButton(name, command)
-	local button = Instance.new("TextButton", buttonPanel)
-	button.Size = UDim2.new(1, 0, 0, 30)
-	button.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
-	button.Text = name
-	button.TextColor3 = Color3.fromRGB(0, 255, 0)
-	button.Font = Enum.Font.Code
-	button.TextSize = 16
-	button.BorderSizePixel = 0
-
-	button.MouseButton1Click:Connect(function()
-		pcall(command)
-	end)
-
-	return button
+-- Function to animate typing
+local function typeText(text, newline)
+	for i = 1, #text do
+		terminal.Text = terminal.Text .. string.sub(text, i, i)
+		wait(0.02)
+	end
+	if newline then
+		terminal.Text = terminal.Text .. "\n"
+	end
 end
 
--- Add example buttons
-local function setupButtons()
-	local btn1 = createHackButton("💥 Explode Character", function()
-		local char = player.Character
-		if char then
-			Instance.new("Explosion", workspace).Position = char.HumanoidRootPart.Position
+-- Start typing logs
+task.spawn(function()
+	for _, line in ipairs(logLines) do
+		typeText(line, true)
+		wait(0.2)
+	end
+	typeText("> ", false)
+end)
+
+-- Invisible TextBox for input capture
+local inputBox = Instance.new("TextBox", frame)
+inputBox.Size = UDim2.new(1, 0, 1, 0)
+inputBox.Position = UDim2.new(0, 0, 0, 0)
+inputBox.TextTransparency = 1
+inputBox.BackgroundTransparency = 1
+inputBox.ClearTextOnFocus = false
+inputBox.Text = ""
+inputBox.TextColor3 = Color3.new(0, 1, 0)
+inputBox.Font = Enum.Font.Code
+inputBox.TextSize = 18
+inputBox.MultiLine = true
+inputBox.CursorPosition = -1
+inputBox.ZIndex = 2
+inputBox.FocusLost:Connect(function(enterPressed)
+	if enterPressed then
+		local lastLine = inputBox.Text:match("[^\n]+$") or ""
+		if lastLine == "Killer" then
+			terminal.Text = terminal.Text .. "Killer\n[LOGIN SUCCESSFUL]\n"
+			inputBox.Visible = false
+			wait(1)
+			showButtonGUI()
+		else
+			terminal.Text = terminal.Text .. lastLine .. "\n[INVALID COMMAND]\n> "
+			inputBox.Text = ""
 		end
-	end)
-
-	local btn2 = createHackButton("⚡ Speed Boost", function()
-		local human = player.Character and player.Character:FindFirstChild("Humanoid")
-		if human then
-			human.WalkSpeed = 100
-		end
-	end)
-
-	local btn3 = createHackButton("🎯 ESP Alert", function()
-		warn("[ESP] Enemy detected at 342, 24, -89")
-	end)
-
-	-- Layout
-	btn1.Position = UDim2.new(0, 0, 0, 0)
-	btn2.Position = UDim2.new(0, 0, 0, 35)
-	btn3.Position = UDim2.new(0, 0, 0, 70)
-end
-
--- Handle login
-loginButton.MouseButton1Click:Connect(function()
-	if loginBox.Text == "Killer" then
-		loginBox.Visible = false
-		loginButton.Visible = false
-		buttonPanel.Visible = true
-		setupButtons()
-	else
-		loginBox.Text = ""
-		loginBox.PlaceholderText = "Incorrect. Try again."
 	end
 end)
+
+inputBox:CaptureFocus()
+
+-- Function to show button GUI after login
+function showButtonGUI()
+	local gui2 = Instance.new("ScreenGui", player.PlayerGui)
+	gui2.Name = "CommandPanel"
+
+	local frame2 = Instance.new("Frame", gui2)
+	frame2.Size = UDim2.new(0, 300, 0, 250)
+	frame2.Position = UDim2.new(0.5, -150, 0.5, -125)
+	frame2.BackgroundColor3 = Color3.new(0, 0, 0)
+	frame2.BorderSizePixel = 2
+	frame2.Active = true
+	frame2.Draggable = true
+
+	local function createButton(text, position, callback)
+		local button = Instance.new("TextButton", frame2)
+		button.Size = UDim2.new(1, -20, 0, 40)
+		button.Position = UDim2.new(0, 10, 0, position)
+		button.Text = text
+		button.TextColor3 = Color3.fromRGB(0, 255, 0)
+		button.Font = Enum.Font.Code
+		button.TextSize = 18
+		button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+		button.BorderSizePixel = 0
+
+		button.MouseButton1Click:Connect(callback)
+	end
+
+	createButton("💥 Explode", 10, function()
+		local char = player.Character
+		if char then
+			local boom = Instance.new("Explosion", workspace)
+			boom.Position = char.HumanoidRootPart.Position
+		end
+	end)
+
+	createButton("⚡ Speed Boost", 60, function()
+		local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+		if hum then hum.WalkSpeed = 100 end
+	end)
+
+	createButton("🔧 Reset Speed", 110, function()
+		local hum = player.Character and player.Character:FindFirstChild("Humanoid")
+		if hum then hum.WalkSpeed = 16 end
+	end)
+
+	createButton("🧠 Print ESP", 160, function()
+		print("[ESP] Enemy spotted at vector 102, 20, -39")
+	end)
+end
