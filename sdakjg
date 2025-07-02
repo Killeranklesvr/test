@@ -1,0 +1,58 @@
+-- Hacker GUI (LocalScript)
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "HackerUI"
+
+-- Frame
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
+
+-- Terminal Text Label
+local terminal = Instance.new("TextLabel", frame)
+terminal.Size = UDim2.new(1, 0, 1, 0)
+terminal.BackgroundTransparency = 1
+terminal.TextColor3 = Color3.fromRGB(0, 255, 0)
+terminal.TextStrokeTransparency = 0.8
+terminal.Font = Enum.Font.Code
+terminal.TextSize = 20
+terminal.TextXAlignment = Enum.TextXAlignment.Left
+terminal.TextYAlignment = Enum.TextYAlignment.Top
+terminal.Text = ""
+terminal.RichText = true
+
+-- "Hacker" text lines
+local lines = {
+    "[ACCESS GRANTED]",
+    "Initializing Killer Hub...",
+    "Injecting into client...",
+    "Bypassing security protocols...",
+    ">> Log: Hooked RemoteEvent (id:0xF1A7)",
+    ">> Spoofing anti-cheat signature...",
+    "Loading scripts...",
+    "Connected to terminal... awaiting commands.",
+    "> _"
+}
+
+-- Typewriter Effect
+task.spawn(function()
+    for _, line in ipairs(lines) do
+        for i = 1, #line do
+            terminal.Text = terminal.Text .. string.sub(line, i, i)
+            wait(0.02)
+        end
+        terminal.Text = terminal.Text .. "\n"
+        wait(0.3)
+    end
+end)
+
+-- Flashing Cursor
+task.spawn(function()
+    while true do
+        terminal.Text = terminal.Text:sub(1, -2) .. "_"
+        wait(0.5)
+        terminal.Text = terminal.Text:sub(1, -2) .. " "
+        wait(0.5)
+    end
+end)
